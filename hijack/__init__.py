@@ -1,4 +1,6 @@
-import django
+"""Enable users to hijack (=login as) and work on behalf of another user."""
 
-if django.VERSION < (3, 2):
-    default_app_config = "hijack.apps.HijackConfig"
+from . import _version
+
+__version__ = _version.version
+VERSION = _version.version_tuple

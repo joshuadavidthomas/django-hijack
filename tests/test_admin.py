@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from hijack.contrib.admin import HijackUserAdminMixin
 from hijack.contrib.admin.apps import HijackAdminConfig
-from hijack.tests.test_app.models import CustomUser, Post
+from tests.test_app.models import CustomUser, Post
 
 
 class TestHijackUserAdminMixin:
@@ -17,7 +17,7 @@ class TestHijackUserAdminMixin:
         assert response.status_code == 200
         assert b"data-hijack-user" in response.content
 
-    @pytest.fixture()
+    @pytest.fixture
     def no_user_admin(self):
         from django.contrib import admin
 
@@ -25,7 +25,7 @@ class TestHijackUserAdminMixin:
         yield
         admin.site._registry[CustomUser] = custom_user_admin
 
-    @pytest.fixture()
+    @pytest.fixture
     def custom_hijack_user_admin(self):
         from django.contrib import admin
 
@@ -56,7 +56,7 @@ class TestHijackUserAdminMixin:
         Post.objects.create(author=admin_user)
         response = admin_client.get(url)
         assert response.status_code == 200
-        assert b"Hijack admin" in response.content
+        assert b"impersonate admin" in response.content
 
     def test_get_hijack_success_url__obj_absolute_url(self, rf):
         obj = Post()

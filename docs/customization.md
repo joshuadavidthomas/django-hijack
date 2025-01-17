@@ -18,12 +18,12 @@ We provide a couple of builtin permission functions for your convenience.
 
 #### `hijack.permissions.superusers_only`
 
-A superuser may hijack any other user (except inactive once).
+A superuser may hijack any other user (except inactive ones).
 Used by default.
 
 #### `hijack.permissions.superusers_and_staff`
 
-Superusers and staff members may hijack other users (except inactive once).
+Superusers and staff members may hijack other users (except inactive ones).
 
 A superuser may hijack any other user.
 A staff member may hijack any user, except another staff member or superuser.
@@ -82,7 +82,9 @@ please refer to Django's guide on [overriding templates][overriding-templates].
 
 ```html
 <!-- hijack/notification.html -->
-<link rel="stylesheet" type="text/css" href="{% static 'hijack/hijack.min.css' %}" media="screen">
+{% load i18n static %}
+
+<link rel="stylesheet" type="text/css" href="{% static 'hijack/hijack.css' %}" media="screen">
 <div class="djhj" id="djhj">
   <div class="djhj-notification">
     <div class="djhj-message">
@@ -94,10 +96,10 @@ please refer to Django's guide on [overriding templates][overriding-templates].
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ request.path }}">
       <button class="djhj-button" onclick="document.getElementById('djhj').style.display = 'none';" type="button">
-        {% trans 'hide' %}
+        {% trans 'hide warning' %}
       </button>
       <button class="djhj-button" type="submit">
-        {% trans 'release' %}
+        {% translate 'stop impersonating' %}
       </button>
     </form>
   </div>
@@ -131,7 +133,7 @@ You can use the default template as a cheat-sheet.
     {% if is_user_admin %}
       {% trans 'hijack'|upper %}
     {% else %}
-      {% blocktrans %}Hijack {{ username }}{% endblocktrans %}
+      {% blocktrans %}impersonate {{ username }}{% endblocktrans %}
     {% endif %}
   </button>
 {% endif %}

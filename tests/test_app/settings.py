@@ -1,6 +1,8 @@
 """Settings that need to be set in order to run the tests."""
+
 import os
 
+import django
 from django.urls import reverse_lazy
 
 DEBUG = True
@@ -13,11 +15,15 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": ":memory:",
-    }
+    },
+    "other": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": ":memory:",
+    },
 }
 
 
-ROOT_URLCONF = "hijack.tests.test_app.urls"
+ROOT_URLCONF = "tests.test_app.urls"
 
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(APP_ROOT, "../app_static")
@@ -27,15 +33,6 @@ STATICFILES_DIRS = (os.path.join(APP_ROOT, "static"),)
 NOSE_ARGS = []
 
 TEMPLATE_DIRS = (os.path.join(APP_ROOT, "tests/test_app/templates"),)
-
-PASSWORD_HASHERS = (
-    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
-    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
-    "django.contrib.auth.hashers.BCryptPasswordHasher",
-    "django.contrib.auth.hashers.SHA1PasswordHasher",
-    "django.contrib.auth.hashers.MD5PasswordHasher",
-    "django.contrib.auth.hashers.CryptPasswordHasher",
-)
 
 MIDDLEWARE = (
     "django.middleware.security.SecurityMiddleware",
@@ -94,12 +91,12 @@ EXTERNAL_APPS = [
 INTERNAL_APPS = [
     "hijack",
     "hijack.contrib.admin",
-    "hijack.tests.test_app",
+    "tests.test_app",
 ]
 
 INSTALLED_APPS = EXTERNAL_APPS + INTERNAL_APPS
 
-SECRET_KEY = "foobar"
+SECRET_KEY = "foobar"  # noqa: S105
 
 LANGUAGE_CODE = "en-us"
 USE_I18N = True
@@ -109,4 +106,5 @@ LOGOUT_REDIRECT_URL = reverse_lazy("bye-bye")
 
 AUTH_USER_MODEL = "test_app.CustomUser"
 
-SESSION_SERIALIZER = "django.contrib.sessions.serializers.PickleSerializer"
+if django.VERSION < (4, 0):
+    SESSION_SERIALIZER = "django.contrib.sessions.serializers.PickleSerializer"

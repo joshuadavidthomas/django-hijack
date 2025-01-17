@@ -1,21 +1,16 @@
 from contextlib import contextmanager
 
-import django
 from django.contrib.auth import BACKEND_SESSION_KEY, get_user_model, load_backend, login
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.db import transaction
+from django.db import ConnectionRouter, transaction
 from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, resolve_url
 from django.utils.decorators import method_decorator
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.module_loading import import_string
 from django.views import View
 from django.views.decorators.csrf import csrf_protect
 from django.views.generic.detail import SingleObjectMixin
-
-if django.VERSION >= (3, 0):
-    from django.utils.http import url_has_allowed_host_and_scheme
-else:
-    from django.utils.http import is_safe_url as url_has_allowed_host_and_scheme
 
 from hijack import signals
 from hijack.conf import settings
@@ -23,8 +18,7 @@ from hijack.conf import settings
 
 def get_used_backend(request):
     backend_str = request.session[BACKEND_SESSION_KEY]
-    backend = load_backend(backend_str)
-    return backend
+    return load_backend(backend_str)
 
 
 @contextmanager
@@ -61,16 +55,17 @@ class SuccessUrlMixin:
 
 
 class LockUserTableMixin:
-    @transaction.atomic()
     def dispatch(self, request, *args, **kwargs):
-        # Lock entire user table to avoid race conditions
-        next(get_user_model().objects.select_for_update().iterator())
-        return super().dispatch(request, *args, **kwargs)
+        write_db = ConnectionRouter().db_for_write(get_user_model())
+        # Lock user row to avoid race conditions
+        with transaction.atomic(using=write_db):
+            get_user_model()._base_manager.select_for_update().get(pk=request.user.pk)
+            return super().dispatch(request, *args, **kwargs)
 
 
 class AcquireUserView(
-    LockUserTableMixin,
     LoginRequiredMixin,
+    LockUserTableMixin,
     UserPassesTestMixin,
     SuccessUrlMixin,
     SingleObjectMixin,
@@ -117,7 +112,11 @@ class AcquireUserView(
 
 
 class ReleaseUserView(
-    LockUserTableMixin, LoginRequiredMixin, UserPassesTestMixin, SuccessUrlMixin, View
+    LoginRequiredMixin,
+    LockUserTableMixin,
+    UserPassesTestMixin,
+    SuccessUrlMixin,
+    View,
 ):
     raise_exception = True
 

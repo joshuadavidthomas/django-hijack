@@ -5,6 +5,7 @@ from django.template.loader import render_to_string
 from django.utils.translation import gettext_lazy as _
 
 from hijack.conf import settings
+from hijack.forms import ESM
 
 
 class HijackUserAdminMixin:
@@ -15,7 +16,7 @@ class HijackUserAdminMixin:
 
     @property
     def media(self):
-        return super().media + forms.Media(js=["hijack/hijack.min.js"])
+        return super().media + forms.Media(js=[ESM("hijack/hijack.js")])
 
     def get_hijack_user(self, obj):
         """
@@ -49,7 +50,7 @@ class HijackUserAdminMixin:
                 "request": request,
                 "another_user": user,
                 "username": str(user),
-                "is_user_admin": self.model == type(user),
+                "is_user_admin": self.model is type(user),
                 "next": self.get_hijack_success_url(request, obj),
             },
             request=request,
@@ -61,7 +62,7 @@ class HijackUserAdminMixin:
         def hijack_field(obj):
             return self.hijack_button(request, obj)
 
-        hijack_field.short_description = _("hijack user")
+        hijack_field.short_description = _("impersonate user")
 
         # we
         list_display = [*self.get_list_display(request), hijack_field]

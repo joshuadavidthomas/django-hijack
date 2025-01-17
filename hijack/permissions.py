@@ -1,16 +1,18 @@
 def superusers_only(*, hijacker, hijacked):
-    """Superusers may hijack any other user."""
+    """Superusers may impersonate any other user."""
+    if not hijacked:
+        return False
     return hijacked.is_active and hijacker.is_superuser
 
 
 def superusers_and_staff(*, hijacker, hijacked):
     """
-    Superusers and staff members may hijack other users.
+    Superusers and staff members may impersonate other users.
 
-    A superuser may hijack any other user.
-    A staff member may hijack any user, except another staff member or superuser.
+    A superuser may impersonate any other user.
+    A staff member may impersonate any user, except another staff member or superuser.
     """
-    if not hijacked.is_active:
+    if not hijacked or not hijacked.is_active:
         return False
 
     if hijacker.is_superuser:
